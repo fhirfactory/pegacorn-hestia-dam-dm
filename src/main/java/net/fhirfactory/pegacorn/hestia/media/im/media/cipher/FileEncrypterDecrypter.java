@@ -50,7 +50,7 @@ public class FileEncrypterDecrypter {
 		}
     }
 
-	public MethodOutcome encryptAndSave(SecretKey secretKey, String fileName, String content) {
+	public MethodOutcome encryptAndSave(SecretKey secretKey, String fileName, byte[] content) {
 		MethodOutcome outcome = null;
 		try {
 			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -61,7 +61,7 @@ public class FileEncrypterDecrypter {
 			CipherOutputStream cipherOut = new CipherOutputStream(fileOut, cipher);
 
 			fileOut.write(iv);
-			cipherOut.write(content.getBytes());
+			cipherOut.write(content);
 			outcome = new MethodOutcome();
 			outcome.setCreated(true);
 			cipherOut.close();
@@ -73,8 +73,8 @@ public class FileEncrypterDecrypter {
 		return outcome;
 	}
 	
-	public String loadAndDecrypt(SecretKey key, String fileName) {
-		String content;
+	public byte[] loadAndDecrypt(SecretKey key, String fileName) {
+		byte[] content;
 
         try (FileInputStream fileIn = new FileInputStream(fileName)) {
             byte[] fileIv = new byte[16];
@@ -82,18 +82,11 @@ public class FileEncrypterDecrypter {
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(fileIv));
 
             try (
-                    CipherInputStream cipherIn = new CipherInputStream(fileIn, cipher);
-                    InputStreamReader inputReader = new InputStreamReader(cipherIn);
-                    BufferedReader reader = new BufferedReader(inputReader)
+                    CipherInputStream cipherIn = new CipherInputStream(fileIn, cipher)
                 ) {
-
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-                content = sb.toString();
+            	content = cipherIn.readAllBytes();
             }
+
             return content;
 
         } catch (InvalidKeyException e) {

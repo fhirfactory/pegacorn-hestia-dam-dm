@@ -22,13 +22,16 @@ class FileEncrypterDecrypterTest {
 		try {
 			SecretKey secretKey = KeyGenerator.getInstance("AES").generateKey();
 			String filename = "filename.enc";
-			String content = "content123";
+			byte[] content = "content123".getBytes();
 
 			MethodOutcome outcome = fed.encryptAndSave(secretKey, filename, content);
 			Assertions.assertTrue(outcome.getCreated());
 			
-			String returnedContent = fed.loadAndDecrypt(secretKey, filename);
-			Assertions.assertEquals(content, returnedContent);
+			byte[] returnedContent = fed.loadAndDecrypt(secretKey, filename);
+			Assertions.assertEquals(content.length, returnedContent.length);
+			for(int i = 0; i < content.length; i++) {
+				Assertions.assertEquals(content[i], returnedContent[i]);
+			}
 
 		} catch (NoSuchAlgorithmException e1) {
 			// TODO Auto-generated catch block
